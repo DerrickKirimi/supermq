@@ -13,7 +13,7 @@ info:
   license:
     name: Apache 2.0
     url: https://github.com/absmach/supermq/blob/main/LICENSE
-  version: 0.15.1
+  version: 0.18.0
 
 servers:
   - url: http://localhost:9006
@@ -28,8 +28,8 @@ tags:
   - name: Roles
     description: All operations involving roles for clients
     externalDocs:
-       description: Find out more about roles
-       url: https://docs.supermq.abstractmachines.fr/
+      description: Find out more about roles
+      url: https://docs.supermq.abstractmachines.fr/
   - name: Health
     description: Health check operations
     externalDocs:
@@ -84,10 +84,22 @@ paths:
         - $ref: "auth.yaml#/components/parameters/DomainID"
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Offset"
+        - $ref: "#/components/parameters/Order"
+        - $ref: "#/components/parameters/Direction"
         - $ref: "#/components/parameters/Metadata"
         - $ref: "#/components/parameters/Status"
         - $ref: "#/components/parameters/ClientName"
         - $ref: "#/components/parameters/Tags"
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/Actions"
+        - $ref: "#/components/parameters/RoleID"
+        - $ref: "#/components/parameters/RoleName"
+        - $ref: "#/components/parameters/AccessType"
+        - $ref: "#/components/parameters/OnlyTotal"
+        - $ref: "#/components/parameters/Channel"
+        - $ref: "#/components/parameters/ConnectionType"
+        - $ref: "#/components/parameters/Group"
+        - $ref: "#/components/parameters/User"
       security:
         - bearerAuth: []
       responses:
@@ -436,7 +448,7 @@ paths:
         - bearerAuth: []
       responses:
         "201":
-            $ref: "./schemas/roles.yaml#/components/responses/CreateRoleRes"
+          $ref: "./schemas/roles.yaml#/components/responses/CreateRoleRes"
         "400":
           description: Failed due to malformed client's ID.
         "401":
@@ -946,7 +958,7 @@ components:
     ParentGroupReqObj:
       type: object
       properties:
-         parent_group_id:
+        parent_group_id:
           type: string
           format: uuid
           example: bb7edb32-2eac-4aad-aebe-ed96fe073879
@@ -1089,9 +1101,7 @@ components:
           example: 10
           description: Maximum number of items to return in one page.
       required:
-        - clients
         - total
-        - offset
 
     ClientUpdate:
       type: object
@@ -1241,6 +1251,133 @@ components:
       required: false
       example: "0"
 
+    Order:
+      name: order
+      description: Field by which to order the results
+      in: query
+      schema:
+        type: string
+      required: false
+      example: created_at
+
+    Direction:
+      name: dir
+      description: Direction of ordering the results.
+      in: query
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+      required: false
+      example: desc
+
+    ID:
+      name: id
+      description: List clients with the given ID.
+      in: query
+      schema:
+        type: string
+        format: uuid
+      required: false
+      example: bb7edb32-2eac-4aad-aebe-ed96fe073879
+
+    Actions:
+      name: actions
+      description: Lists clients that the user has the given actions on. Multiple actions can be specified separated by comma.
+      in: query
+      schema:
+        type: string
+      required: false
+      example: "action1,action2"
+
+    RoleID:
+      name: role_id
+      description: List clients that the user has the given role ID on.
+      in: query
+      schema:
+        type: string
+        format: uuid
+      required: false
+      example: bb7edb32-2eac-4aad-aebe-ed96fe073879
+
+    RoleName:
+      name: role_name
+      description: List clients that the user has the given role name on.
+      in: query
+      schema:
+        type: string
+      required: false
+      example: admin
+
+    AccessType:
+      name: access_type
+      description: Type of access the user has on the client.
+      in: query
+      schema:
+        type: string
+        enum:
+          - direct
+          - domain
+          - indirect
+          - indirect_group
+      required: false
+      example: direct
+
+    OnlyTotal:
+      name: only_total
+      description: If true, the response will contain only the total number of clients that match the query parameters.
+      in: query
+      schema:
+        type: boolean
+        default: false
+      required: false
+
+    Channel:
+      name: channel
+      description: If provided lists clients connected to a channel with the provided ID.
+      in: query
+      schema:
+        type: string
+        format: uuid
+        minLength: 36
+      required: false
+      example: bb7edb32-2eac-4aad-aebe-ed96fe073879
+
+    ConnectionType:
+      name: connection_type
+      description: If provided with channel parameter lists clients connected to the channel with the provided connection type.
+      in: query
+      schema:
+        type: string
+        enum:
+          - Publish
+          - Subscribe
+      required: false
+      example: Publish
+
+    Group:
+      name: group
+      description: If provided lists clients belonging to a group with the provided ID.
+      in: query
+      schema:
+        type: string
+        format: uuid
+        minLength: 36
+      required: false
+      example: bb7edb32-2eac-4aad-aebe-ed96fe073879
+
+    User:
+      name: user
+      description: If provided lists clients associated with a user with the provided ID. Only available for admin users.
+      in: query
+      schema:
+        type: string
+        format: uuid
+        minLength: 36
+      required: false
+      example: bb7edb32-2eac-4aad-aebe-ed96fe073879
+
   requestBodies:
     ClientCreateReq:
       description: JSON-formatted document describing the new client to be registered
@@ -1337,7 +1474,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Client"
-    
+
     ClientPageRes:
       description: Data retrieved.
       content:
